@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Requerimientos{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">📋 Generar Requerimiento</h2>
+
+<form method="POST">
+
+<!-- SOLICITANTE -->
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Datos del solicitante</strong>
+    </div>
+    <div class="card-body">
+
+        <label class="form-label"><strong>Nombre del solicitante *</strong></label>
+        <input type="text"
+               name="solicitante"
+               class="form-control"
+               placeholder="Ej: Juan Pérez"
+               required>
+
+    </div>
+</div>
+
+
+<!-- BUSCADOR -->
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Buscar productos</strong>
+    </div>
+    <div class="card-body">
+
+        <input type="text"
+               id="buscador"
+               class="form-control"
+               placeholder="Escribe el nombre del producto...">
+
+        <small class="text-muted">
+            Escribe para filtrar productos
+        </small>
+
+    </div>
+</div>
+
+
+
+<!-- TABLA -->
+<div class="card">
+    <div class="card-header">
+        <strong>Productos del requerimiento</strong>
+    </div>
+
+    <div class="card-body">
+
+        <table class="table table-striped" id="tablaProductos">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoria</th>
+                    <th>Unidad</th>
+                    <th style="display:none;">Stock</th>
+                    <th>Cantidad requerida</th>
+                    <th>Cantidad a solicitar</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for p in productos %}
+            <tr>
+                <td>{{ p.producto }}</td>
+                <td>{{ p.categoria }}</td>
+                <td>{{ p.unidad }}</td>
+
+                <!-- STOCK OCULTO -->
+                <td style="display:none;" class="stock">
+                    {{ p.stock }}
+                </td>
+
+                <!-- REQUERIDA -->
+                <td>
+                    <input type="number"
+                           name="req_{{ p.producto }}"
+                           class="form-control requerida"
+                           min="0"
+                           data-stock="{{ p.stock }}">
+                </td>
+
+                <!-- A SOLICITAR -->
+                <td>
+                    <input type="number"
+                           class="form-control solicitar"
+                           readonly>
+                </td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+
+        <button class="btn btn-verde mt-3">
+            💾 Guardar y descargar requerimiento
+        </button>
+
+    </div>
+</div>
+
+</form>
+
+
+<!-- 🔥 SCRIPT BUSCADOR + CALCULO -->
+<script>
+
+// BUSCADOR
+document.getElementById("buscador").addEventListener("keyup", function() {
+
+    let filtro = this.value.toLowerCase();
+    let filas = document.querySelectorAll("#tablaProductos tbody tr");
+
+    filas.forEach(fila => {
+
+        let producto = fila.children[0].textContent.toLowerCase();
+
+        fila.style.display =
+            producto.includes(filtro) ? "" : "none";
+    });
+
+});
+
+
+// CALCULAR SOLICITUD
+document.querySelectorAll(".requerida").forEach(input => {
+
+    input.addEventListener("input", function(){
+
+        let stock = parseInt(this.dataset.stock) || 0;
+        let requerida = parseInt(this.value) || 0;
+
+        let solicitar = requerida - stock;
+
+        if (solicitar < 0){
+            solicitar = 0;
+        }
+
+        this.closest("tr")
+            .querySelector(".solicitar")
+            .value = solicitar;
+
+    });
+
+});
+
+</script>
+
+{% endblock %}

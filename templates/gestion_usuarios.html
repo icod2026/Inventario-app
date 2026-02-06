@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Gestión de usuarios</h3>
+
+<div class="card mb-3">
+<div class="card-body">
+
+<form method="POST">
+
+<select name="accion" class="form-select mb-2">
+<option value="crear">Crear usuario</option>
+<option value="eliminar">Eliminar usuario</option>
+<option value="cambiar_clave">Cambiar contraseña</option>
+</select>
+
+<input name="usuario" class="form-control mb-2" placeholder="Usuario">
+
+<input name="clave" class="form-control mb-2" placeholder="Clave">
+
+<select name="rol" class="form-select mb-2">
+<option value="inventario">Inventario</option>
+<option value="requerimientos">Requerimientos</option>
+<option value="admin">Admin</option>
+</select>
+
+<button class="btn btn-verde">Guardar</button>
+
+</form>
+
+</div>
+</div>
+
+<h4>Usuarios registrados</h4>
+
+<table class="table">
+<tr>
+<th>Usuario</th>
+<th>Rol</th>
+</tr>
+
+{% for u in usuarios %}
+<tr>
+<td>{{ u[0] }}</td>
+<td>{{ u[1] }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+{% endblock %}

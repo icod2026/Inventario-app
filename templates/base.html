@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Inventario ICOD SAS{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --verde-chulito: #1fbf4a;
+            --amarillo-suave: #f4c542;
+            --fondo: #f7f7f7;
+        }
+
+        body {
+            background: var(--fondo);
+        }
+
+        .navbar {
+            background: var(--verde-chulito) !important;
+        }
+
+        .btn-verde {
+            background: var(--verde-chulito);
+            color: white;
+        }
+
+        .btn-amarillo {
+            background: var(--amarillo-suave);
+            color: #1f6f1f;
+        }
+
+        .card-header {
+            background: var(--verde-chulito);
+            color: white;
+        }
+
+        .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: #e9ffe9;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/">INVENTARIO ICOD SAS</a>
+
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          {% if session.get("rol") != "requerimientos" %}
+<a class="nav-link" href="/">Movimientos</a>
+{% endif %}
+
+        </li>
+      
+  <li class="nav-item">
+   <a class="nav-link" href="/requerimientos">Requerimientos</a>
+ </li>
+</ul>
+      <!-- 🔹 FORMULARIO AGREGAR PRODUCTO (NUEVO) -->
+
+   {% if session.get("rol") != "requerimientos" %}
+<form method="POST" action="/" class="d-flex align-items-center me-2">
+    <input type="hidden" name="accion" value="agregar_producto">
+
+    <select name="nueva_categoria" class="form-select form-select-sm me-1" required>
+      {% for cat in categorias %}
+        {% if cat != "Todas" %}
+          <option value="{{ cat }}">{{ cat }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+    <input type="text" name="nuevo_producto"
+           class="form-control form-control-sm me-1"
+           placeholder="Producto" required>
+
+    <input type="text" name="nueva_unidad"
+           class="form-control form-control-sm me-1"
+           placeholder="Unidad" required>
+
+    <button type="submit" class="btn btn-amarillo btn-sm">
+      Agregar
+    </button>
+</form>
+{% endif %}
+
+      <!-- 🔹 BOTÓN SALIR (IGUAL QUE ANTES) -->
+      <span class="navbar-text">
+        <a class="btn btn-amarillo btn-sm" href="/logout">Salir</a>
+      </span>
+
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-4">
+    {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
