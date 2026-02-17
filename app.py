@@ -193,9 +193,33 @@ def index():
         for _, row in df.iterrows()
     }
 
-    # Inventario
-    inv_df = pd.read_sql_query("SELECT * FROM inventario", conn)
-    inventario = dict(zip(inv_df["producto"], inv_df["stock"]))
+    # Calcular stock real desde movimientos
+    mov_stock = pd.read_sql_query(
+        "SELECT producto, tipo, cantidad FROM movimientos", conn
+    )
+
+    inventario = {}
+
+    if not mov_stock.empty:
+        mov_stock["valor"] = mov_stock.apply(
+            lambda row: row["cantidad"] if row["tipo"] == "entrada" else -row["cantidad"],
+            axis=1
+        )
+
+        # Ordenar por ID o fecha si tienes
+    mov_stock = mov_stock.sort_index()
+
+    stock_real = {}
+
+    for producto, grupo in mov_stock.groupby("producto"):
+        stock = 0
+
+        for val in grupo["valor"]:
+            stock = max(0, stock + val)
+
+        stock_real[producto] = stock
+
+    inventario = stock_real
 
     # Movimientos
     mov_df = pd.read_sql_query("SELECT * FROM movimientos", conn)
@@ -311,33 +335,11 @@ def eliminar_movimiento(idx):
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM movimientos WHERE id=?", (idx,))
-    mov = cur.fetchone()
+    cur.execute("DELETE FROM movimientos WHERE id=?", (idx,))
 
-    if mov:
-
-        producto = mov[2]
-        cantidad = mov[5]
-        tipo = mov[6]
-
-        cur.execute("SELECT stock FROM inventario WHERE producto=?", (producto,))
-        fila = cur.fetchone()
-        stock = fila[0] if fila else 0
-
-        if tipo == "entrada":
-            stock -= cantidad
-        else:
-            stock += cantidad
-
-        if stock < 0:
-            stock = 0
-
-        cur.execute("UPDATE inventario SET stock=? WHERE producto=?", (stock,producto))
-        cur.execute("DELETE FROM movimientos WHERE id=?", (idx,))
-
-        conn.commit()
-
+    conn.commit()
     conn.close()
+
     return redirect(url_for("index"))
 
 # ===============================
@@ -420,16 +422,21 @@ def download_stock():
         axis=1
     )
 
-    # Calcular stock real por producto
-    df_stock = df_mov.groupby("producto", as_index=False)["valor"].sum()
+    # 🔥 Calcular stock secuencial (igual que en el sistema)
+    stock_dict = {}
 
-    # Renombrar columna
-    df_stock = df_stock.rename(columns={"valor": "Stock"})
+    for producto, grupo in df_mov.groupby("producto"):
+        stock = 0
 
-    # Evitar negativos
-    df_stock["Stock"] = df_stock["Stock"].apply(lambda x: max(0, int(x)))
+        for val in grupo["valor"]:
+            stock = max(0, stock + val)
 
-    # Solo productos con stock real
+        stock_dict[producto] = stock
+
+    # Convertir a DataFrame
+    df_stock = pd.DataFrame(list(stock_dict.items()), columns=["producto", "Stock"])
+
+    # Solo productos con stock mayor a 0
     df_stock = df_stock[df_stock["Stock"] > 0]
 
     # Ordenar
@@ -464,10 +471,29 @@ def requerimientos():
     conn = get_db()
 
     df_prod = pd.read_sql_query("SELECT * FROM productos", conn)
-    df_inv = pd.read_sql_query("SELECT * FROM inventario", conn)
+    df_mov = pd.read_sql_query(
+        "SELECT producto, tipo, cantidad FROM movimientos", conn
+    )
+    inventario_dict = {}
 
-    inventario_dict = dict(zip(df_inv["producto"], df_inv["stock"]))
+    if not df_mov.empty:
 
+        df_mov["valor"] = df_mov.apply(
+            lambda row: row["cantidad"] if row["tipo"] == "entrada" else -row["cantidad"],
+            axis=1
+        )
+
+        # (Si tienes ID o fecha, puedes ordenar aquí)
+        # df_mov = df_mov.sort_values("id")
+
+        for producto, grupo in df_mov.groupby("producto"):
+
+            stock = 0
+
+            for val in grupo["valor"]:
+                stock = max(0, stock + val)
+
+            inventario_dict[producto] = stock
     productos = []
 
     for _, row in df_prod.iterrows():
