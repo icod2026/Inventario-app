@@ -227,21 +227,29 @@ def index():
 
     if request.method == "POST":
 
-        # ===== AGREGAR PRODUCTO =====
+      # ===== AGREGAR PRODUCTO =====
         if request.form.get("accion") == "agregar_producto":
 
-            cur.execute("""
-            INSERT INTO productos (categoria,item,descripcion)
-            VALUES (?,?,?)
-            """,(
-                request.form["nueva_categoria"],
-                request.form["nuevo_producto"],
-                request.form["nueva_unidad"]
-            ))
+            nueva_categoria = request.form["nueva_categoria"].strip().upper()
+            nuevo_producto = request.form["nuevo_producto"].strip().upper()
+            nueva_unidad = request.form["nueva_unidad"].strip().upper()
 
-            conn.commit()
+            cur.execute("SELECT id FROM productos WHERE item = ?", (nuevo_producto,))
+            existe = cur.fetchone()
+
+            if not existe:
+                cur.execute("""
+                INSERT INTO productos (categoria,item,descripcion)
+                VALUES (?,?,?)
+                """,(
+                    nueva_categoria,
+                    nuevo_producto,
+                    nueva_unidad
+                ))
+
+                conn.commit()
+
             conn.close()
-
             return redirect(url_for("index"))
 
         # ===== MOVIMIENTOS =====
