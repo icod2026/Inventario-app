@@ -206,8 +206,7 @@ def index():
             axis=1
         )
 
-        # Ordenar por ID o fecha si tienes
-    mov_stock = mov_stock.sort_index()
+        mov_stock = mov_stock.sort_index()
 
     stock_real = {}
 
@@ -295,7 +294,16 @@ def index():
 
         return redirect(url_for("index"))
 
-    categorias = ["Todas"] + sorted(df["categoria"].unique().tolist())
+    categorias_limpias = (
+        df["categoria"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+        .unique()
+        .tolist()
+    )
+
+    categorias = ["Todas"] + sorted(categorias_limpias)
 
          # ===============================
     # FILTROS GET (REGISTRAR MOVIMIENTO)
