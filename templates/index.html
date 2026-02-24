@@ -174,7 +174,7 @@
         <td>{{ m.tipo }}</td>
         <td>
           <form method="POST"
-                action="{{ url_for('eliminar_movimiento', idx=loop.index0) }}"
+                action="{{ url_for('eliminar_movimiento', idx=m.id) }}"
                 onsubmit="return confirm('¿Seguro que desea eliminar este movimiento?');">
             <button class="btn btn-danger btn-sm">🗑</button>
           </form>
