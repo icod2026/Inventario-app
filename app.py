@@ -40,6 +40,7 @@ def crear_db():
     )
     """)
 
+    #cursor.execute("DROP TABLE IF EXISTS movimientos")
     cur.execute("""
     CREATE TABLE IF NOT EXISTS movimientos(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
